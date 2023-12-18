@@ -1863,6 +1863,21 @@ def test_mean_var(jax_dist, sp_dist, params):
 
 
 @pytest.mark.parametrize(
+    "jax_dist, sp_dist, params",
+    [
+        T(dist.BernoulliProbs, 0.2),
+        T(dist.BernoulliProbs, np.array([0.2, 0.7])),
+        T(dist.BernoulliLogits, np.array([-1.0, 3.0])),
+    ],
+)
+def test_entropy(jax_dist, sp_dist, params):
+    d_jax = jax_dist(*params)
+    d_sp = sp_dist(*params)
+    sp_entropy = d_sp.entropy()
+    assert_allclose(d_jax.entropy, sp_entropy, rtol=0.01, atol=1e-7)
+
+
+@pytest.mark.parametrize(
     "jax_dist, sp_dist, params", CONTINUOUS + DISCRETE + DIRECTIONAL
 )
 @pytest.mark.parametrize("prepend_shape", [(), (2,), (2, 3)])
@@ -3070,9 +3085,11 @@ def test_vmap_dist(jax_dist, sp_dist, params):
 
     for in_axes, out_axes in in_out_axes_cases:
         batched_params = [
-            jax.tree_map(lambda x: jnp.expand_dims(x, ax), arg)
-            if isinstance(ax, int)
-            else arg
+            (
+                jax.tree_map(lambda x: jnp.expand_dims(x, ax), arg)
+                if isinstance(ax, int)
+                else arg
+            )
             for arg, ax in zip(params, in_axes)
         ]
         # Recreate the jax_dist to avoid side effects coming from `d.sample`

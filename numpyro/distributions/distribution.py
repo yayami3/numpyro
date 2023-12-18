@@ -348,6 +348,13 @@ class Distribution(metaclass=DistributionMeta):
         """
         raise NotImplementedError
 
+    @property
+    def entropy(self):
+        """
+        Shannon entropy of the distribution.
+        """
+        raise NotImplementedError
+
     def _validate_sample(self, value):
         mask = self.support(value)
         if not_jax_tracer(mask):

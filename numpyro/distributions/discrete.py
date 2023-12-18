@@ -102,6 +102,10 @@ class BernoulliProbs(Distribution):
     def variance(self):
         return self.probs * (1 - self.probs)
 
+    @property
+    def entropy(self):
+        return -xlogy(self.probs, self.probs) - xlog1py(1 - self.probs, -self.probs)
+
     def enumerate_support(self, expand=True):
         values = jnp.arange(2).reshape((-1,) + (1,) * len(self.batch_shape))
         if expand:
@@ -142,6 +146,10 @@ class BernoulliLogits(Distribution):
     @property
     def variance(self):
         return self.probs * (1 - self.probs)
+
+    @property
+    def entropy(self):
+        return -xlogy(self.probs, self.probs) - xlog1py(1 - self.probs, -self.probs)
 
     def enumerate_support(self, expand=True):
         values = jnp.arange(2).reshape((-1,) + (1,) * len(self.batch_shape))
@@ -679,6 +687,7 @@ class Poisson(Distribution):
     :param bool is_sparse: Whether to assume value is mostly zero when computing
         :meth:`log_prob`, which can speed up computation when data is sparse.
     """
+
     arg_constraints = {"rate": constraints.positive}
     support = constraints.nonnegative_integer
     pytree_aux_fields = ("is_sparse",)
